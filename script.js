@@ -1,16 +1,17 @@
-// ----------------------
-// Firebase Setup
-// ----------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAFcv_wCPzLXI4cXOwdqOyMM6k0kUrFUJo",
   authDomain: "i-dont-know-cefc9.firebaseapp.com",
   databaseURL: "https://i-dont-know-cefc9-default-rtdb.firebaseio.com/",
   projectId: "i-dont-know-cefc9",
-  storageBucket: "i-dont-know-cefc9.firebasestorage.app",
+  storageBucket: "i-dont-know-cefc9.appspot.com",   // FIXED
   messagingSenderId: "207625985266",
-  appId: "1:207625985266:web:15efe8f966a14b2943446b",
-  measurementId: "G-SRHJFZRSQ0"
+  appId: "1:207625985266:web:15efe8f966a14b2943446b"
+  // measurementId removed (optional)
 };
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 
 // ⭐ YOU FORGOT THESE TWO LINES ⭐
 firebase.initializeApp(firebaseConfig);
