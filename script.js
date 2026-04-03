@@ -13,10 +13,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 
-// ⭐ YOU FORGOT THESE TWO LINES ⭐
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
 // ----------------------
 // Game Variables
 // ----------------------
