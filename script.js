@@ -25,7 +25,7 @@ let currentPrompt = null;
 const prompts = ["Cat", "House", "Tree", "Star", "Clock"];
 
 // ⏱️ TIMER ADDED
-let timeLeft = 60; 
+let timeLeft = 300; 
 let timerInterval = null;
 
 // ----------------------
