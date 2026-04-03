@@ -1,19 +1,42 @@
-<button onclick="openGame()" style="
-  padding:12px 22px;
-  background:#1a73e8;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-">
-  Open Fullscreen
-</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Multiplayer Draw & Guess</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<script>
-function openGame() {
-  let win = window.open("about:blank", "_blank");
-  win.document.write("<title>Loading...</title>");
-  win.location.href = "https://gx2pxr-8080.csb.app/prefix/aHR0cHM6Ly9lYWdsZXJjcmFmdHgucGFnZXMuZGV2/";
-}
-</script>
+<div id="container">
+
+  <h1>Multiplayer Draw & Guess</h1>
+
+  <div id="login">
+    <input id="nameInput" placeholder="Enter your name">
+    <button id="joinBtn">Join Game</button>
+  </div>
+
+  <div id="game" style="display:none;">
+
+    <p id="roleText"></p>
+    <p id="promptText"></p>
+
+    <canvas id="canvas" width="500" height="350"></canvas>
+
+    <div id="guessArea">
+      <input id="guessInput" placeholder="Your guess">
+      <button id="guessBtn">Guess</button>
+    </div>
+
+    <div id="messages"></div>
+
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
