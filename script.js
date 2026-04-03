@@ -12,6 +12,10 @@ const firebaseConfig = {
   measurementId: "G-SRHJFZRSQ0"
 };
 
+// ⭐ YOU FORGOT THESE TWO LINES ⭐
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 // ----------------------
 // Game Variables
 // ----------------------
