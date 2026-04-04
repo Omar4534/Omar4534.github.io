@@ -201,6 +201,14 @@ document.getElementById("guessBtn").onclick = () => {
 
 db.ref("game/guesses").on("child_added", snap => {
   const { name, guess } = snap.val();
+
+  // If correct guess, DO NOT show the word
+  if (guess.toLowerCase() === currentPrompt?.toLowerCase()) {
+    messages.innerHTML += `<div style="color:#4ade80;"><b>${name} guessed the word!</b></div>`;
+    return;
+  }
+
+  // Otherwise show normal guess
   messages.innerHTML += `<div><b>${name}:</b> ${guess}</div>`;
 });
 
