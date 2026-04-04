@@ -21,7 +21,23 @@
     <p id="roleText"></p>
     <p id="promptText"></p>
 
-    <canvas id="canvas" width="500" height="350"></canvas>
+    <div id="drawArea">
+
+      <div id="sidebar">
+        <h3>Tools</h3>
+
+        <label>Color</label>
+        <input type="color" id="colorPicker" value="#ffffff">
+
+        <label>Brush Size</label>
+        <input type="range" id="brushSize" min="2" max="20" value="4">
+
+        <button id="eraserBtn">Eraser</button>
+      </div>
+
+      <canvas id="canvas" width="500" height="350"></canvas>
+
+    </div>
 
     <div id="guessArea">
       <input id="guessInput" placeholder="Your guess">
