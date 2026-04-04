@@ -1,17 +1,18 @@
+// ----------------------
+// Firebase Setup
+// ----------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAFcv_wCPzLXI4cXOwdqOyMM6k0kUrFUJo",
   authDomain: "i-dont-know-cefc9.firebaseapp.com",
   databaseURL: "https://i-dont-know-cefc9-default-rtdb.firebaseio.com/",
   projectId: "i-dont-know-cefc9",
-  storageBucket: "i-dont-know-cefc9.appspot.com",   // FIXED
+  storageBucket: "i-dont-know-cefc9.appspot.com",
   messagingSenderId: "207625985266",
   appId: "1:207625985266:web:15efe8f966a14b2943446b"
-  // measurementId removed (optional)
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
 
 // ----------------------
 // Game Variables
@@ -19,11 +20,15 @@ const db = firebase.database();
 let name = "";
 let isDrawer = false;
 let currentPrompt = null;
-const prompts = ["Cat", "House", "Tree", "Star", "Clock"];
+const prompts = ["Cat", "House", "Tree", "Star", "Clock", "Dog", "Car", "Boat", "Phone", "Flower"];
 
-// ⏱️ TIMER ADDED
-let timeLeft = 300; 
+let timeLeft = 300;
 let timerInterval = null;
+
+// Drawing tools
+let brushColor = "#ffffff";
+let brushSize = 4;
+let erasing = false;
 
 // ----------------------
 // DOM Elements
@@ -54,7 +59,6 @@ function startRound() {
   db.ref("game/drawer").once("value", snap => {
     const drawer = snap.val();
 
-    // ⏱️ TIMER ADDED — reset timer in database
     db.ref("game/timer").set(300);
 
     if (!drawer) {
@@ -82,7 +86,6 @@ function setupDrawer() {
   db.ref("game/guesses").remove();
   db.ref("game/canvas").remove();
 
-  // ⏱️ TIMER ADDED — drawer starts the countdown
   startTimer();
 }
 
@@ -101,7 +104,7 @@ function setupGuesser() {
 }
 
 // ----------------------
-// ⏱️ TIMER FUNCTION
+// Timer
 // ----------------------
 function startTimer() {
   clearInterval(timerInterval);
@@ -118,9 +121,6 @@ function startTimer() {
   }, 1000);
 }
 
-// ----------------------
-// ⏱️ SHOW TIMER TO EVERYONE
-// ----------------------
 db.ref("game/timer").on("value", snap => {
   const t = snap.val();
   if (t == null) return;
@@ -131,6 +131,22 @@ db.ref("game/timer").on("value", snap => {
 });
 
 // ----------------------
+// Drawing Tools
+// ----------------------
+document.getElementById("colorPicker").oninput = e => {
+  brushColor = e.target.value;
+  erasing = false;
+};
+
+document.getElementById("brushSize").oninput = e => {
+  brushSize = parseInt(e.target.value);
+};
+
+document.getElementById("eraserBtn").onclick = () => {
+  erasing = true;
+};
+
+// ----------------------
 // Canvas Drawing Sync
 // ----------------------
 const canvas = document.getElementById("canvas");
@@ -138,7 +154,7 @@ const ctx = canvas.getContext("2d");
 let drawing = false;
 
 if (canvas) {
-  canvas.addEventListener("mousedown", e => {
+  canvas.addEventListener("mousedown", () => {
     if (!isDrawer) return;
     drawing = true;
   });
@@ -151,15 +167,22 @@ if (canvas) {
     const x = e.offsetX;
     const y = e.offsetY;
 
-    db.ref("game/canvas").push({ x, y });
+    db.ref("game/canvas").push({
+      x,
+      y,
+      color: erasing ? "#1f2937" : brushColor,
+      size: erasing ? 20 : brushSize
+    });
   });
 }
 
-// Render strokes from Firebase
+// Render strokes
 db.ref("game/canvas").on("child_added", snap => {
-  const { x, y } = snap.val();
-  ctx.fillStyle = "white";
-  ctx.fillRect(x, y, 4, 4);
+  const { x, y, color, size } = snap.val();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+  ctx.fill();
 });
 
 // ----------------------
@@ -176,13 +199,14 @@ document.getElementById("guessBtn").onclick = () => {
   }
 };
 
-// Display guesses
 db.ref("game/guesses").on("child_added", snap => {
   const { name, guess } = snap.val();
   messages.innerHTML += `<div><b>${name}:</b> ${guess}</div>`;
 });
 
+// ----------------------
 // Winner
+// ----------------------
 db.ref("game/winner").on("value", snap => {
   const winner = snap.val();
   if (!winner) return;
