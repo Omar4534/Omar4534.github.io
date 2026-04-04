@@ -226,3 +226,23 @@ db.ref("game/winner").on("value", snap => {
     location.reload();
   }, 3000);
 });
+
+// ----------------------
+// Background Music
+// ----------------------
+const bgMusic = document.getElementById("bgMusic");
+const musicToggle = document.getElementById("musicToggle");
+let musicPlaying = false;
+
+musicToggle.onclick = () => {
+  if (!musicPlaying) {
+    bgMusic.volume = 0.4; // not too loud
+    bgMusic.play();
+    musicToggle.textContent = "🔇 Mute";
+    musicPlaying = true;
+  } else {
+    bgMusic.pause();
+    musicToggle.textContent = "🔊 Music";
+    musicPlaying = false;
+  }
+};
