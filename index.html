@@ -1,64 +1,214 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Guess The Drawing</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fullscreen Button Injector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0e11; --surface: #18181d; --border: #2a2a35;
+      --accent: #7c6aff; --accent2: #ff6a9b; --text: #f0eeff;
+      --muted: #7b7a9a; --success: #4ade9e;
+      --mono: 'JetBrains Mono', monospace; --display: 'Syne', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--display); min-height: 100vh; display: flex; flex-direction: column; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(124,106,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+    header { position: relative; z-index: 1; padding: 3rem 2rem 2rem; max-width: 760px; margin: 0 auto; width: 100%; }
+    .badge { display: inline-block; font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid var(--accent); padding: 3px 10px; border-radius: 20px; margin-bottom: 1rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .subtitle { margin-top: 0.75rem; color: var(--muted); font-size: 1rem; font-weight: 500; line-height: 1.6; }
+    main { position: relative; z-index: 1; flex: 1; max-width: 760px; margin: 0 auto; width: 100%; padding: 0 2rem 4rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; margin-bottom: 1.25rem; }
+    .card-label { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+    .card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: var(--mono); font-size: 12px; color: var(--text); resize: vertical; line-height: 1.6; transition: border-color 0.2s; min-height: 200px; }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+    textarea[readonly] { cursor: default; opacity: 0.9; }
+    .options-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .opt-btn { font-family: var(--mono); font-size: 12px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .opt-btn:hover { border-color: var(--accent); color: var(--text); }
+    .opt-btn.active { border-color: var(--accent); background: rgba(124,106,255,0.12); color: var(--accent); }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.25rem; }
+    .btn { font-family: var(--display); font-weight: 700; font-size: 14px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; transition: all 0.15s; }
+    .btn:hover { border-color: var(--muted); background: rgba(255,255,255,0.04); }
+    .btn:active { transform: scale(0.97); }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), #5b4bff); border-color: transparent; color: #fff; }
+    .btn.primary:hover { opacity: 0.9; }
+    .notice { font-family: var(--mono); font-size: 12px; padding: 10px 14px; border-radius: 8px; margin-top: 12px; display: none; }
+    .notice.success { background: rgba(74,222,158,0.1); border: 1px solid rgba(74,222,158,0.3); color: var(--success); }
+    .notice.error { background: rgba(255,106,155,0.1); border: 1px solid rgba(255,106,155,0.3); color: var(--accent2); }
+    #output-section { display: none; }
+    footer { position: relative; z-index: 1; text-align: center; padding: 1.5rem; font-family: var(--mono); font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
+    @media (max-width: 600px) { header, main { padding-left: 1.25rem; padding-right: 1.25rem; } }
+  </style>
 </head>
 <body>
+  <header>
+    <div class="badge">&#x26F6; tool</div>
+    <h1>Fullscreen<br><span>Button Injector</span></h1>
+    <p class="subtitle">Paste your HTML game code, pick your options, and get a clean standalone file that opens fullscreen in a new tab.</p>
+  </header>
 
-<div id="container">
+  <main>
+    <div class="card">
+      <div class="card-label">01 — paste your html</div>
+      <textarea id="input" placeholder="Paste your full HTML game code here..."></textarea>
+    </div>
 
-  <h1>Guess The Drawing</h1>
-
-<button id="musicToggle">🔊 Music</button>
-
-<audio id="bgMusic" loop>
-  <source src="music.mp3" type="audio/mpeg">
-</audio>
-  
-  <div id="login">
-    <input id="nameInput" placeholder="Enter your name">
-    <button id="joinBtn">Join Game</button>
-  </div>
-
-  <div id="game" style="display:none;">
-
-    <p id="roleText"></p>
-    <p id="promptText"></p>
-
-    <div id="drawArea">
-
-      <div id="sidebar">
-        <h3>Tools</h3>
-
-        <label>Color</label>
-        <input type="color" id="colorPicker" value="#ffffff">
-
-        <label>Brush Size</label>
-        <input type="range" id="brushSize" min="2" max="20" value="4">
-
-        <button id="eraserBtn">Eraser</button>
+    <div class="card">
+      <div class="card-label">02 — button position</div>
+      <div class="options-row">
+        <button class="opt-btn active" data-pos="bottom-right" onclick="setPos(this)">Bottom right</button>
+        <button class="opt-btn" data-pos="bottom-left" onclick="setPos(this)">Bottom left</button>
+        <button class="opt-btn" data-pos="top-right" onclick="setPos(this)">Top right</button>
+        <button class="opt-btn" data-pos="top-left" onclick="setPos(this)">Top left</button>
       </div>
 
-      <canvas id="canvas" width="500" height="350"></canvas>
+      <div class="card-label" style="margin-top: 1rem;">03 — button style</div>
+      <div class="options-row">
+        <button class="opt-btn active" data-style="dark" onclick="setStyle(this)">Dark glass</button>
+        <button class="opt-btn" data-style="light" onclick="setStyle(this)">Light</button>
+        <button class="opt-btn" data-style="minimal" onclick="setStyle(this)">Minimal</button>
+      </div>
 
+      <div class="btn-row">
+        <button class="btn primary" onclick="inject()">&#x26A1; Generate code</button>
+        <button class="btn" onclick="clearAll()">Clear</button>
+      </div>
+      <div id="notice" class="notice"></div>
     </div>
 
-    <div id="guessArea">
-      <input id="guessInput" placeholder="Your guess">
-      <button id="guessBtn">Guess</button>
+    <div id="output-section">
+      <div class="card">
+        <div class="card-label">04 — your updated html</div>
+        <textarea id="output" rows="16" readonly></textarea>
+        <div class="btn-row">
+          <button class="btn primary" onclick="copyOutput()">&#x2398; Copy to clipboard</button>
+          <button class="btn" onclick="previewGame()">&#x25B6; Preview in new tab</button>
+        </div>
+        <div id="copy-notice" class="notice success" style="display:none;">Copied to clipboard!</div>
+      </div>
     </div>
+  </main>
 
-    <div id="messages"></div>
+  <footer>fullscreen button injector &mdash; paste, generate, play</footer>
 
-  </div>
+  <script>
+    let selectedPos = 'bottom-right';
+    let selectedStyle = 'dark';
 
-</div>
+    function setPos(el) {
+      document.querySelectorAll('[data-pos]').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedPos = el.dataset.pos;
+    }
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-<script src="script.js"></script>
+    function setStyle(el) {
+      document.querySelectorAll('[data-style]').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedStyle = el.dataset.style;
+    }
 
+    function posCSS(pos) {
+      const map = {
+        'bottom-right': 'bottom:12px;right:12px;',
+        'bottom-left':  'bottom:12px;left:12px;',
+        'top-right':    'top:12px;right:12px;',
+        'top-left':     'top:12px;left:12px;'
+      };
+      return map[pos] || map['bottom-right'];
+    }
+
+    function styleCSS(s) {
+      const map = {
+        'dark':    'background:rgba(0,0,0,0.6);color:#fff;border:1px solid rgba(255,255,255,0.3);',
+        'light':   'background:rgba(255,255,255,0.85);color:#111;border:1px solid rgba(0,0,0,0.15);',
+        'minimal': 'background:transparent;color:#fff;border:2px solid rgba(255,255,255,0.6);'
+      };
+      return map[s] || map['dark'];
+    }
+
+    function showNotice(msg, type) {
+      const n = document.getElementById('notice');
+      n.textContent = msg;
+      n.className = 'notice ' + type;
+      n.style.display = 'block';
+    }
+
+    function buildGameHTML(input) {
+      const btnStyle = 'position:fixed;' + posCSS(selectedPos) + styleCSS(selectedStyle) + 'z-index:9999;padding:8px 14px;font-size:14px;border-radius:6px;cursor:pointer;font-family:sans-serif;';
+
+      // The injected button opens THIS same clean game page in a new popup tab
+      const injection = `
+  <button id="_fsBtn" style="${btnStyle}" onclick="_openPop()">Press F for Fullscreen</button>
+  <script>
+    function _openPop() {
+      var html = document.documentElement.outerHTML;
+      html = html.replace(/<button id="_fsBtn"[\s\S]*?<\/button>/, '');
+      html = html.replace(/<script>[\s\S]*?_openPop[\s\S]*?<\/script>/, '');
+      var w = window.open('about:blank', '_blank', 'width=' + screen.width + ',height=' + screen.height + ',toolbar=0,menubar=0,scrollbars=0,status=0,resizable=1');
+      if (!w) { alert('Please allow popups for this site.'); return; }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+    document.addEventListener('keydown', function(e) {
+      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) { _openPop(); }
+    });
+  <` + `/script>`;
+
+      let result = input;
+      if (result.toLowerCase().includes('</body>')) {
+        result = result.replace(/<\/body>/i, injection + '\n</body>');
+      } else {
+        result = result + injection;
+      }
+      return result;
+    }
+
+    function inject() {
+      const input = document.getElementById('input').value.trim();
+      if (!input) { showNotice('Please paste your HTML code first.', 'error'); return; }
+      const result = buildGameHTML(input);
+      document.getElementById('output').value = result;
+      document.getElementById('output-section').style.display = 'block';
+      document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showNotice('Done! Copy the code below and save it as your game HTML file.', 'success');
+    }
+
+    function previewGame() {
+      const html = document.getElementById('output').value;
+      if (!html) return;
+      var w = window.open('about:blank', '_blank');
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+
+    function copyOutput() {
+      const out = document.getElementById('output');
+      out.select();
+      document.execCommand('copy');
+      const n = document.getElementById('copy-notice');
+      n.style.display = 'block';
+      setTimeout(() => n.style.display = 'none', 2500);
+    }
+
+    function clearAll() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').value = '';
+      document.getElementById('output-section').style.display = 'none';
+      document.getElementById('notice').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
