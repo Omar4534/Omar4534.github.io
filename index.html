@@ -36,10 +36,8 @@
     textarea:focus { outline: none; border-color: var(--accent); }
     textarea::placeholder { color: var(--muted); }
     textarea[readonly] { cursor: default; opacity: 0.9; }
-    .options-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
-    .opt-btn { font-family: var(--mono); font-size: 12px; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-    .opt-btn:hover { border-color: var(--accent); color: var(--text); }
-    .opt-btn.active { border-color: var(--accent); background: rgba(124,106,255,0.12); color: var(--accent); }
+    input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-family: var(--mono); font-size: 13px; color: var(--text); outline: none; transition: border-color 0.2s; }
+    input[type=text]:focus { border-color: var(--accent); }
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.25rem; }
     .btn { font-family: var(--display); font-weight: 700; font-size: 14px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; transition: all 0.15s; }
     .btn:hover { border-color: var(--muted); background: rgba(255,255,255,0.04); }
@@ -58,21 +56,23 @@
   <header>
     <div class="badge">&#x26F6; tool</div>
     <h1>Fullscreen<br><span>Button Injector</span></h1>
-    <p class="subtitle">Paste your HTML game code and get a launcher page that works inside Google Sites embeds.</p>
+    <p class="subtitle">Paste your HTML game code and get a launcher that works inside Google Sites embeds.</p>
+    <div class="nav-links">
+      <a href="https://yoursite.com/page1" target="_blank" class="nav-btn">🎮 Page 1</a>
+      <a href="https://yoursite.com/page2" target="_blank" class="nav-btn">🎮 Page 2</a>
+      <a href="https://yoursite.com/page3" target="_blank" class="nav-btn">🎮 Page 3</a>
     </div>
   </header>
 
   <main>
     <div class="card">
       <div class="card-label">01 — paste your html game code</div>
-      <textarea id="input" placeholder="Paste your full HTML game code here..."></textarea>
+      <textarea id="input" rows="10" placeholder="Paste your full HTML game code here..."></textarea>
     </div>
 
     <div class="card">
       <div class="card-label">02 — button label</div>
-      <input id="btnLabel" type="text" value="▶ Press F for Fullscreen"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
-
+      <input id="btnLabel" type="text" value="Play Fullscreen">
       <div class="btn-row">
         <button class="btn primary" onclick="inject()">&#x26A1; Generate launcher</button>
         <button class="btn" onclick="clearAll()">Clear</button>
@@ -88,7 +88,7 @@
           <button class="btn primary" onclick="copyOutput()">&#x2398; Copy to clipboard</button>
           <button class="btn" onclick="previewLauncher()">&#x25B6; Preview</button>
         </div>
-        <div id="copy-notice" class="notice success" style="display:none;">Copied to clipboard!</div>
+        <div id="copy-notice" class="notice success" style="display:none;">Copied!</div>
       </div>
     </div>
   </main>
@@ -97,96 +97,98 @@
 
   <script>
     function showNotice(msg, type) {
-      const n = document.getElementById('notice');
+      var n = document.getElementById('notice');
       n.textContent = msg;
       n.className = 'notice ' + type;
       n.style.display = 'block';
     }
 
-    function escapeForJS(str) {
-      // Escape the game HTML so it can be safely embedded as a JS string
-      return str
-        .replace(/\\/g, '\\\\')
-        .replace(/`/g, '\\`')
-        .replace(/\$/g, '\\$');
-    }
-
     function inject() {
-      const input = document.getElementById('input').value.trim();
-      const label = document.getElementById('btnLabel').value.trim() || '▶ Play Fullscreen';
+      var input = document.getElementById('input').value.trim();
+      var label = document.getElementById('btnLabel').value.trim() || 'Play Fullscreen';
       if (!input) { showNotice('Please paste your HTML game code first.', 'error'); return; }
 
-      const escaped = escapeForJS(input);
+      // Split game HTML into lines and build html += '...' statements
+      // Escape each line so it's safe inside a single-quoted JS string
+      var lines = input.split('\n');
+      var htmlLines = '';
+      for (var i = 0; i < lines.length; i++) {
+        // Escape backslashes first, then single quotes
+        var escaped = lines[i]
+          .replace(/\\/g, '\\\\')
+          .replace(/'/g, "\\'");
+        htmlLines += "  html += '" + escaped + "\\n';\n";
+      }
 
-      const launcher = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #111;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    #launch-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 18px 44px;
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      border: 2px solid rgba(99,179,237,0.4);
-      border-radius: 12px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      box-shadow: 0 0 30px rgba(99,179,237,0.15), 0 4px 20px rgba(0,0,0,0.6);
-      transition: all 0.25s ease;
-      overflow: hidden;
-    }
-    #launch-btn::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(99,179,237,0.08), transparent);
-      opacity: 0; transition: opacity 0.25s;
-    }
-    #launch-btn:hover { border-color: rgba(99,179,237,0.8); box-shadow: 0 0 50px rgba(99,179,237,0.35), 0 4px 30px rgba(0,0,0,0.7); transform: translateY(-2px); }
-    #launch-btn:hover::before { opacity: 1; }
-    #launch-btn:active { transform: translateY(0); }
-    .pulse-ring { position: absolute; width: 100%; height: 100%; border-radius: 12px; border: 2px solid rgba(99,179,237,0.4); animation: pulse 2s ease-out infinite; }
-    @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.08); opacity: 0; } }
-  </style>
-</head>
-<body>
-  <button id="launch-btn" onclick="launchGame()">
-    <div class="pulse-ring"></div>
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-    ${label}
-  </button>
-  <script>
-    function launchGame() {
-      var gameHTML = \`${escaped}\`;
-      var win = window.open('', '_blank');
-      if (!win) { alert('Pop-up blocked! Please allow pop-ups for this site and try again.'); return; }
-      win.document.open();
-      win.document.write(gameHTML);
-      win.document.close();
-    }
-    document.addEventListener('keydown', function(e) {
-      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) { launchGame(); }
-    });
-  <\/script>
-</body>
-</html>`;
+      var launcher =
+        '<!DOCTYPE html>\n' +
+        '<html lang="en">\n' +
+        '<head>\n' +
+        '<meta charset="utf-8">\n' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '<style>\n' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
+        'body {\n' +
+        '  display: flex;\n' +
+        '  align-items: center;\n' +
+        '  justify-content: center;\n' +
+        '  min-height: 100vh;\n' +
+        '  background: #111;\n' +
+        '  font-family: "Segoe UI", sans-serif;\n' +
+        '}\n' +
+        '#launch-btn {\n' +
+        '  position: relative;\n' +
+        '  display: flex;\n' +
+        '  align-items: center;\n' +
+        '  justify-content: center;\n' +
+        '  gap: 12px;\n' +
+        '  padding: 18px 44px;\n' +
+        '  font-size: 20px;\n' +
+        '  font-weight: 700;\n' +
+        '  color: #fff;\n' +
+        '  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);\n' +
+        '  border: 2px solid rgba(99,179,237,0.4);\n' +
+        '  border-radius: 12px;\n' +
+        '  cursor: pointer;\n' +
+        '  letter-spacing: 1px;\n' +
+        '  text-transform: uppercase;\n' +
+        '  box-shadow: 0 0 30px rgba(99,179,237,0.15), 0 4px 20px rgba(0,0,0,0.6);\n' +
+        '  transition: all 0.25s ease;\n' +
+        '  overflow: hidden;\n' +
+        '  white-space: nowrap;\n' +
+        '}\n' +
+        '#launch-btn::before {\n' +
+        '  content: "";\n' +
+        '  position: absolute; inset: 0;\n' +
+        '  background: linear-gradient(135deg, rgba(99,179,237,0.08), transparent);\n' +
+        '  opacity: 0; transition: opacity 0.25s;\n' +
+        '}\n' +
+        '#launch-btn:hover { border-color: rgba(99,179,237,0.8); box-shadow: 0 0 50px rgba(99,179,237,0.35), 0 4px 30px rgba(0,0,0,0.7); transform: translateY(-2px); }\n' +
+        '#launch-btn:hover::before { opacity: 1; }\n' +
+        '#launch-btn:active { transform: translateY(0); }\n' +
+        '.pulse-ring { position: absolute; width: 100%; height: 100%; border-radius: 12px; border: 2px solid rgba(99,179,237,0.4); animation: pulse 2s ease-out infinite; }\n' +
+        '@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.08); opacity: 0; } }\n' +
+        '</style>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '<button id="launch-btn" onclick="launchGame()">\n' +
+        '  <div class="pulse-ring"></div>\n' +
+        '  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>\n' +
+        '  ' + label + '\n' +
+        '</button>\n' +
+        '<script>\n' +
+        'function launchGame() {\n' +
+        '  var win = window.open("", "_blank");\n' +
+        '  if (!win) { alert("Pop-up blocked! Please allow pop-ups for this site."); return; }\n' +
+        '  var html = "";\n' +
+        htmlLines +
+        '  win.document.open();\n' +
+        '  win.document.write(html);\n' +
+        '  win.document.close();\n' +
+        '}\n' +
+        '<\/script>\n' +
+        '</body>\n' +
+        '</html>';
 
       document.getElementById('output').value = launcher;
       document.getElementById('output-section').style.display = 'block';
@@ -195,7 +197,7 @@
     }
 
     function previewLauncher() {
-      const html = document.getElementById('output').value;
+      var html = document.getElementById('output').value;
       if (!html) return;
       var win = window.open('', '_blank');
       win.document.open();
@@ -204,12 +206,12 @@
     }
 
     function copyOutput() {
-      const out = document.getElementById('output');
+      var out = document.getElementById('output');
       out.select();
       document.execCommand('copy');
-      const n = document.getElementById('copy-notice');
+      var n = document.getElementById('copy-notice');
       n.style.display = 'block';
-      setTimeout(() => n.style.display = 'none', 2500);
+      setTimeout(function() { n.style.display = 'none'; }, 2500);
     }
 
     function clearAll() {
