@@ -25,6 +25,9 @@
     h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
     h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .subtitle { margin-top: 0.75rem; color: var(--muted); font-size: 1rem; font-weight: 500; line-height: 1.6; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.5rem; }
+    .nav-btn { font-family: var(--mono); font-size: 12px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); text-decoration: none; transition: all 0.15s; }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,106,255,0.08); }
     main { position: relative; z-index: 1; flex: 1; max-width: 760px; margin: 0 auto; width: 100%; padding: 0 2rem 4rem; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; margin-bottom: 1.25rem; }
     .card-label { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
@@ -55,33 +58,23 @@
   <header>
     <div class="badge">&#x26F6; tool</div>
     <h1>Fullscreen<br><span>Button Injector</span></h1>
-    <p class="subtitle">Paste your HTML game code, pick your options, and get a clean standalone file that opens fullscreen in a new tab.</p>
+    <p class="subtitle">Paste your HTML game code and get a launcher page that works inside Google Sites embeds.</p>
+    </div>
   </header>
 
   <main>
     <div class="card">
-      <div class="card-label">01 — paste your html</div>
+      <div class="card-label">01 — paste your html game code</div>
       <textarea id="input" placeholder="Paste your full HTML game code here..."></textarea>
     </div>
 
     <div class="card">
-      <div class="card-label">02 — button position</div>
-      <div class="options-row">
-        <button class="opt-btn active" data-pos="bottom-right" onclick="setPos(this)">Bottom right</button>
-        <button class="opt-btn" data-pos="bottom-left" onclick="setPos(this)">Bottom left</button>
-        <button class="opt-btn" data-pos="top-right" onclick="setPos(this)">Top right</button>
-        <button class="opt-btn" data-pos="top-left" onclick="setPos(this)">Top left</button>
-      </div>
-
-      <div class="card-label" style="margin-top: 1rem;">03 — button style</div>
-      <div class="options-row">
-        <button class="opt-btn active" data-style="dark" onclick="setStyle(this)">Dark glass</button>
-        <button class="opt-btn" data-style="light" onclick="setStyle(this)">Light</button>
-        <button class="opt-btn" data-style="minimal" onclick="setStyle(this)">Minimal</button>
-      </div>
+      <div class="card-label">02 — button label</div>
+      <input id="btnLabel" type="text" value="▶ Press F for Fullscreen"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
 
       <div class="btn-row">
-        <button class="btn primary" onclick="inject()">&#x26A1; Generate code</button>
+        <button class="btn primary" onclick="inject()">&#x26A1; Generate launcher</button>
         <button class="btn" onclick="clearAll()">Clear</button>
       </div>
       <div id="notice" class="notice"></div>
@@ -89,54 +82,20 @@
 
     <div id="output-section">
       <div class="card">
-        <div class="card-label">04 — your updated html</div>
+        <div class="card-label">03 — your launcher html</div>
         <textarea id="output" rows="16" readonly></textarea>
         <div class="btn-row">
           <button class="btn primary" onclick="copyOutput()">&#x2398; Copy to clipboard</button>
-          <button class="btn" onclick="previewGame()">&#x25B6; Preview in new tab</button>
+          <button class="btn" onclick="previewLauncher()">&#x25B6; Preview</button>
         </div>
         <div id="copy-notice" class="notice success" style="display:none;">Copied to clipboard!</div>
       </div>
     </div>
   </main>
 
-  <footer>fullscreen button injector &mdash; paste, generate, play</footer>
+  <footer>fullscreen button injector &mdash; works in google sites</footer>
 
   <script>
-    let selectedPos = 'bottom-right';
-    let selectedStyle = 'dark';
-
-    function setPos(el) {
-      document.querySelectorAll('[data-pos]').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-      selectedPos = el.dataset.pos;
-    }
-
-    function setStyle(el) {
-      document.querySelectorAll('[data-style]').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-      selectedStyle = el.dataset.style;
-    }
-
-    function posCSS(pos) {
-      const map = {
-        'bottom-right': 'bottom:12px;right:12px;',
-        'bottom-left':  'bottom:12px;left:12px;',
-        'top-right':    'top:12px;right:12px;',
-        'top-left':     'top:12px;left:12px;'
-      };
-      return map[pos] || map['bottom-right'];
-    }
-
-    function styleCSS(s) {
-      const map = {
-        'dark':    'background:rgba(0,0,0,0.6);color:#fff;border:1px solid rgba(255,255,255,0.3);',
-        'light':   'background:rgba(255,255,255,0.85);color:#111;border:1px solid rgba(0,0,0,0.15);',
-        'minimal': 'background:transparent;color:#fff;border:2px solid rgba(255,255,255,0.6);'
-      };
-      return map[s] || map['dark'];
-    }
-
     function showNotice(msg, type) {
       const n = document.getElementById('notice');
       n.textContent = msg;
@@ -144,54 +103,104 @@
       n.style.display = 'block';
     }
 
-    function buildGameHTML(input) {
-      const btnStyle = 'position:fixed;' + posCSS(selectedPos) + styleCSS(selectedStyle) + 'z-index:9999;padding:8px 14px;font-size:14px;border-radius:6px;cursor:pointer;font-family:sans-serif;';
-
-      // The injected button opens THIS same clean game page in a new popup tab
-      const injection = `
-  <button id="_fsBtn" style="${btnStyle}" onclick="_openPop()">Press F for Fullscreen</button>
-  <script>
-    function _openPop() {
-      var html = document.documentElement.outerHTML;
-      html = html.replace(/<button id="_fsBtn"[\s\S]*?<\/button>/, '');
-      html = html.replace(/<script>[\s\S]*?_openPop[\s\S]*?<\/script>/, '');
-      var w = window.open('about:blank', '_blank', 'width=' + screen.width + ',height=' + screen.height + ',toolbar=0,menubar=0,scrollbars=0,status=0,resizable=1');
-      if (!w) { alert('Please allow popups for this site.'); return; }
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
-    }
-    document.addEventListener('keydown', function(e) {
-      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) { _openPop(); }
-    });
-  <` + `/script>`;
-
-      let result = input;
-      if (result.toLowerCase().includes('</body>')) {
-        result = result.replace(/<\/body>/i, injection + '\n</body>');
-      } else {
-        result = result + injection;
-      }
-      return result;
+    function escapeForJS(str) {
+      // Escape the game HTML so it can be safely embedded as a JS string
+      return str
+        .replace(/\\/g, '\\\\')
+        .replace(/`/g, '\\`')
+        .replace(/\$/g, '\\$');
     }
 
     function inject() {
       const input = document.getElementById('input').value.trim();
-      if (!input) { showNotice('Please paste your HTML code first.', 'error'); return; }
-      const result = buildGameHTML(input);
-      document.getElementById('output').value = result;
+      const label = document.getElementById('btnLabel').value.trim() || '▶ Play Fullscreen';
+      if (!input) { showNotice('Please paste your HTML game code first.', 'error'); return; }
+
+      const escaped = escapeForJS(input);
+
+      const launcher = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #111;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #launch-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 18px 44px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border: 2px solid rgba(99,179,237,0.4);
+      border-radius: 12px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 0 30px rgba(99,179,237,0.15), 0 4px 20px rgba(0,0,0,0.6);
+      transition: all 0.25s ease;
+      overflow: hidden;
+    }
+    #launch-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(99,179,237,0.08), transparent);
+      opacity: 0; transition: opacity 0.25s;
+    }
+    #launch-btn:hover { border-color: rgba(99,179,237,0.8); box-shadow: 0 0 50px rgba(99,179,237,0.35), 0 4px 30px rgba(0,0,0,0.7); transform: translateY(-2px); }
+    #launch-btn:hover::before { opacity: 1; }
+    #launch-btn:active { transform: translateY(0); }
+    .pulse-ring { position: absolute; width: 100%; height: 100%; border-radius: 12px; border: 2px solid rgba(99,179,237,0.4); animation: pulse 2s ease-out infinite; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.08); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <button id="launch-btn" onclick="launchGame()">
+    <div class="pulse-ring"></div>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    ${label}
+  </button>
+  <script>
+    function launchGame() {
+      var gameHTML = \`${escaped}\`;
+      var win = window.open('', '_blank');
+      if (!win) { alert('Pop-up blocked! Please allow pop-ups for this site and try again.'); return; }
+      win.document.open();
+      win.document.write(gameHTML);
+      win.document.close();
+    }
+    document.addEventListener('keydown', function(e) {
+      if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) { launchGame(); }
+    });
+  <\/script>
+</body>
+</html>`;
+
+      document.getElementById('output').value = launcher;
       document.getElementById('output-section').style.display = 'block';
       document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      showNotice('Done! Copy the code below and save it as your game HTML file.', 'success');
+      showNotice('Done! Upload this file to GitHub Pages and embed that URL in Google Sites.', 'success');
     }
 
-    function previewGame() {
+    function previewLauncher() {
       const html = document.getElementById('output').value;
       if (!html) return;
-      var w = window.open('about:blank', '_blank');
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
+      var win = window.open('', '_blank');
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
     }
 
     function copyOutput() {
